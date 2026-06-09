@@ -28,7 +28,8 @@ primitives** that make it run: Automations · Worktrees · Skills · Plugins/Con
 ## Design vs. execute (how this fits with `/loop`)
 This skill **designs** the loop — it writes a `LOOP.md` file. **Running** it is a separate step:
 - The user runs **`/loop`** pointed at the file — e.g. `/loop Follow LOOP.md — keep iterating until every
-  DONE-WHEN box passes, then stop.` (omit an interval to self-pace; add `10m` to re-check on a timer), **or**
+  DONE-WHEN box passes, then stop.` (omit an interval to self-pace; or put one **right after `/loop`** —
+  e.g. `/loop 10m Follow LOOP.md …` — to re-check on a timer), **or**
 - this skill **launches it now** as a background subagent (coder + an independent verifier).
 
 So: **`loop-coding` is the architect; `/loop` (or a subagent) is the engine.** Always end the session by
@@ -125,7 +126,8 @@ so it's one-click copyable. Use exactly this shape (fill in the real path and a 
 > iteration, respect every GUARDRAIL, and keep going until all DONE-WHEN boxes pass, then stop and summarize.
 > ```
 >
-> _Tip: omit an interval to self-pace, or add one (e.g. `15m`) to re-check on a timer._
+> _Tip: omit an interval to self-pace, or add one **right after `/loop`** (e.g. `/loop 15m Follow …`) to
+> re-check on a timer._
 
 Keep it to that — one command, the right path, nothing noisy around it. That command is the handoff.
 
@@ -161,6 +163,8 @@ Fill every `<…>` with real, discovered values. Keep it tight and unambiguous.
 - Off-limits: <secrets / migrations / prod / network>.
 - Commit after each working increment with a clear message.
 - Append progress + next step to PROGRESS.md every iteration.
+- <multi-session runs only> After any failure: document the exact error → diagnose the cause → verify the
+  fix with a real check → distill a general rule into PROGRESS.md → consult it next session. No unverified guesses.
 
 ## STOP / ESCALATE
 - Stop when every DONE-WHEN box is checked, then summarize.
@@ -188,7 +192,7 @@ Copy-paste this into the agent:
     /loop Follow ./LOOP.md — work toward the GOAL, run the TEST-AS-YOU-GO checks every iteration,
     respect every GUARDRAIL, and keep going until all DONE-WHEN boxes pass, then stop and summarize.
 
-(No interval = self-paced; add e.g. `15m` to re-check on a timer.)
+(No interval = self-paced; or add one right after `/loop`, e.g. `/loop 15m Follow ./LOOP.md …`, to re-check on a timer.)
 - Or ask the loop-coding skill to launch it now (background coder + independent verifier subagent).
 - To run elsewhere (Codex / a cloud agent): paste this entire file as the task.
 ```
