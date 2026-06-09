@@ -34,6 +34,11 @@ This skill **designs** the loop — it writes a `LOOP.md` file. **Running** it i
 So: **`loop-coding` is the architect; `/loop` (or a subagent) is the engine.** Always end the session by
 telling the user the exact command to run their loop — don't leave them guessing.
 
+> **Built-in loop primitives worth knowing:** Claude Code's **`/goal`** and Claude Managed Agent's
+> **`Outcomes`** implement this same pattern as a first-class feature — a goal + rubric the model grades
+> itself against, with an independent grader sub-agent spawned automatically. Use them when you're inside
+> those platforms; use a `LOOP.md` for full portability or cross-tool composition.
+
 ---
 
 ## The procedure
@@ -201,8 +206,38 @@ Copy-paste this into the agent:
 | **Worktrees** | isolate parallel work | `git worktree add` per task; or `isolation: worktree` on a spawned subagent |
 | **Skills** | codify knowledge | the installed `SKILL.md`s under `~/.claude/skills` / `.claude/skills` you found — load by name |
 | **Plugins / connectors** | tools | the MCP servers/plugins connected this session (name them) |
-| **Sub-agents** | coder + verifier | agent defs in `.claude/agents/`, built-in agent types, or agent teams — keep the verifier independent |
+| **Sub-agents** | coder + verifier | agent defs in `.claude/agents/`, built-in agent types, or agent teams — **keep the verifier independent**: grading in a fresh context window consistently outperforms self-critique because the model can't reliably catch its own errors in the same window |
 | **State / memory** | track progress | `PROGRESS.md` / `AGENTS.md` committed to the repo, or an issue tracker via a connected MCP |
+
+---
+
+## Memory as an outer loop
+
+For runs that span multiple sessions or many iterations, memory is the **outer loop** — it lets the agent
+build verified knowledge across context windows instead of re-deriving the same facts each time.
+Effective memory use follows a progression; require it in your GUARDRAILS when the run will span sessions:
+
+| Step | What the agent does |
+|---|---|
+| **1 · Fail** | Attempt the task; document what went wrong and the exact error |
+| **2 · Investigate** | Before moving on, find out *why* — reproduce the failure, narrow the cause |
+| **3 · Verify** | Turn the diagnosis into a **checked fact** (confirm the schema, test the assumption with a real query) |
+| **4 · Distill** | Compress the verified finding into a **general rule** written into `PROGRESS.md` or memory |
+| **5 · Consult** | On the next session or iteration, **read** the rule — don't re-derive it |
+
+Models that short-circuit to step 1 (a list of failure notes and open guesses like "maybe `prc` instead of
+`prc_usd`?") stay stuck re-deriving the same facts. The full progression means verified rules accumulate
+and performance compounds across sessions. Concretely: Fable 5-class models running this progression reach
+up to **73% verification coverage** on memory tasks vs. under 20% for models that skip to "fail + note."
+
+Include this in your GUARDRAILS template for any loop that will span multiple context windows:
+
+```
+MEMORY RULE: After any failure, complete the full progression before moving on:
+(1) document the exact error → (2) diagnose the cause → (3) verify the diagnosis with a real check
+→ (4) distill into a general rule in PROGRESS.md → (5) consult that rule in the next session.
+Never write an open guess (e.g. "maybe X?") without verifying it first.
+```
 
 ---
 
@@ -216,3 +251,8 @@ Copy-paste this into the agent:
 - **PROGRESS.md is the loop's memory** across context windows — insist on it for multi-step runs.
 - **Human "on the loop," not "in the loop":** review at checkpoints, not every keystroke.
 - Keep the spec readable in one screen. Precision beats length.
+- **Loops scale with better models.** A well-designed loop doesn't become obsolete as models improve —
+  it gets *more* powerful. Better models make bigger structural bets, push through regressions, reach
+  higher verification coverage, and complete the full memory progression unsupervised. Design the loop
+  right once; the model capability does the heavy lifting. Brian Cherny (@bcherny) at Anthropic put it
+  plainly: *"my job is to write loops."*
