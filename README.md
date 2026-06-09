@@ -8,7 +8,12 @@
 
 ## Install
 
-**git (recommended):**
+**One-line installer (recommended):**
+```bash
+curl -fsSL https://loopcoding.dev/install.sh | bash
+```
+
+**git:**
 ```bash
 git clone https://github.com/0xArx/loopcoding-skill.git ~/.claude/skills/loop-coding
 ```
