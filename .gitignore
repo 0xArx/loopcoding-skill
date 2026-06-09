@@ -1,0 +1,16 @@
+# OS / editor cruft
+.DS_Store
+*.swp
+*~
+
+# the repo is intentionally just the skill (README.md, SKILL.md, LICENSE).
+# the marketing site, promo assets, and tooling live outside it:
+generator/
+promo/
+index.html
+landing.html
+logo.svg
+loop-bg.svg
+*.mp4
+*.png
+node_modules/
