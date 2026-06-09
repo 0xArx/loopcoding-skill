@@ -33,7 +33,9 @@ This skill **designs** the loop — it writes a `LOOP.md` file. **Running** it i
 - this skill **launches it now** as a background subagent (coder + an independent verifier).
 
 So: **`loop-coding` is the architect; `/loop` (or a subagent) is the engine.** Always end the session by
-telling the user the exact command to run their loop — don't leave them guessing.
+giving the user **both**: the exact copy-paste command to run their loop (the default), and an offer to
+launch it for them right then if they'd rather you just run it. Don't leave them guessing, and don't launch
+without them saying so.
 
 > **Built-in loop primitives worth knowing:** Claude Code's **`/goal`** and Claude Managed Agent's
 > **`Outcomes`** implement this same pattern as a first-class feature — a goal + rubric the model grades
@@ -97,29 +99,35 @@ Write `LOOP.md` from the template below, naming the **actual** skills/agents/MCP
 discovered — not placeholders. Scaffold `PROGRESS.md` (the loop's cross-context memory). Show LOOP.md to
 the user and iterate until they approve. A sharp, environment-specific spec is the whole value.
 
-### Phase 3 — Launch
-Once `LOOP.md` is approved, either launch it for them or hand them the run command. Options:
+### Phase 3 — Hand off (always present BOTH options)
+Once `LOOP.md` is approved, the **default deliverable is the copy-paste `/loop` command** (Phase 4) — the
+user runs it whenever they want. In the **same reply**, also **offer to launch it now** for them. Present
+the two as clear choices and let the user pick — do not assume:
 
-- **Let me launch it now (default if they say go):** spawn the coder subagent (the `Task`/`Agent` tool,
-  using the discovered agent definition if there is one) with the full `LOOP.md` as its prompt, plus a
-  **separate verifier subagent** to check each iteration. Run in the background; report at checkpoints.
-  Use a `git worktree` if they chose parallel isolation.
-- **Run it yourself:** hand them the copy-paste command (see Phase 4 — this is the most important
-  thing you produce; make it clean).
-- **Scheduled / hook:** if they wanted automation, register it via the `schedule` skill or a settings hook.
-- **Run elsewhere (Codex/cloud):** print `LOOP.md` as a ready-to-paste task block.
+- **① Run it yourself (default):** hand them the clean `/loop` command from Phase 4. This is the single most
+  important thing you produce — make it impossible to get wrong.
+- **② Launch it now (only when the user opts in — e.g. they reply "sure, launch it"):** spawn the coder
+  subagent (the `Agent`/`Task` tool, using the discovered agent definition if there is one) with the full
+  `LOOP.md` as its prompt, plus a **separate verifier subagent** to check each iteration. Run in the
+  background; report at checkpoints. Use a `git worktree` if they chose parallel isolation.
 
-Never auto-launch anything touching prod, remote systems, or money without explicit confirmation.
+**Never launch on your own initiative** — produce the command and the offer, then wait. Only spawn the
+subagents after the user explicitly says to. Also available if they ask for it:
+- **Scheduled / hook:** register it via the `schedule` skill or a settings hook.
+- **Run elsewhere (Codex / cloud):** print `LOOP.md` as a ready-to-paste task block.
 
-### Phase 4 — End with ONE beautiful copy-paste command (always)
+Never launch anything touching prod, remote systems, or money without explicit confirmation.
+
+### Phase 4 — End with the copy-paste command + the launch offer (always)
 This is the final thing every loop-coding session must produce. After `LOOP.md` is written, end your reply
-with a single, clean, ready-to-run command that makes `/loop` follow the file — using the **real path**
-where you saved it. Make it impossible to get wrong: state the path, then the command, set off on its own
-so it's one-click copyable. Use exactly this shape (fill in the real path and a 1-line goal recap):
+with a single, clean, ready-to-run `/loop` command using the **real path** where you saved it — then, right
+below it, **offer to launch it now**. Both options, every time. Make the command impossible to get wrong:
+state the path, then the command on its own line so it's one-click copyable. Use exactly this shape (fill in
+the real path and a 1-line goal recap):
 
 > ✅ Your loop is ready → \`<path>/LOOP.md\`
 >
-> Copy-paste this to run it:
+> **Option 1 — run it yourself.** Copy-paste this:
 >
 > ```
 > /loop Follow <path>/LOOP.md — <one-line goal>. Work the loop: run the TEST-AS-YOU-GO checks every
@@ -128,8 +136,12 @@ so it's one-click copyable. Use exactly this shape (fill in the real path and a 
 >
 > _Tip: omit an interval to self-pace, or add one **right after `/loop`** (e.g. `/loop 15m Follow …`) to
 > re-check on a timer._
+>
+> **Option 2 — I launch it for you.** Just say *"launch it"* and I'll spawn the coder + an independent
+> verifier subagent in the background and report at checkpoints.
 
-Keep it to that — one command, the right path, nothing noisy around it. That command is the handoff.
+Keep it clean — the command, the timer tip, and the launch offer, nothing noisier. If the user picks
+Option 2, go to Phase 3 ② and spawn the subagents; otherwise the command is the handoff and you're done.
 
 ### Phase 5 — Monitor & close
 Keep the user oriented: surface checkpoint pauses, summarize what changed, and confirm the verification
